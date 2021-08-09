@@ -1,98 +1,73 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
-import ContactForm from "./Components/ContactForm";
-import ContactList from "./Components/ContactList";
-import Filter from "./Components/Filter";
+import ContactForm from "./components/ContactForm";
+import ContactList from "./components/ContactList";
+import Filter from "./components/Filter";
 
-class App extends Component {
-  state = {
-    contacts: [
-      { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-    ],
-    filter: "",
-  };
+const INITIAL_CONTACTS = [
+  { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
+  { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
+  { id: "id-3", name: "Eden Clements", number: "645-17-79" },
+  { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
+];
 
-  handleAddContact = (newContact) => {
+export default function App() {
+  const [contacts, setContacts] = useState(
+    () =>
+      JSON.parse(window.localStorage.getItem("contacts")) ?? INITIAL_CONTACTS
+  );
+  const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    window.localStorage.setItem("contacts", JSON.stringify(contacts));
+  }, [contacts]);
+
+  function handleAddContact(newContact) {
     // console.log(newContact);
-    const uniqueContact = this.handleUniqueContact(newContact);
+    const uniqueContact = handleUniqueContact(newContact);
     if (!uniqueContact) {
       alert(`${newContact.name} is already in contacts`);
       return;
     }
-    this.setState((prevState) => ({
-      contacts: [newContact, ...prevState.contacts],
-    }));
+    setContacts((prev) => [newContact, ...prev]);
+  }
+
+  const handleChangeFilter = (e) => {
+    const { value } = e.target;
+    setFilter(value);
   };
 
-  handleUniqueContact = (newContact) => {
-    const { contacts } = this.state;
+  function handleUniqueContact(newContact) {
     const isExistContact = !!contacts.find(
       (contact) => contact.name === newContact.name
     );
     return !isExistContact;
     // console.log(isExistContact);
-  };
+  }
 
-  handleChangeFilter = (e) => {
-    this.setState({ filter: e.target.value });
-    // console.log(e);
-  };
-
-  getVisibleContacts = () => {
-    const { contacts, filter } = this.state;
+  function getVisibleContacts() {
     const normalizedFilter = filter.toLowerCase();
 
-    return contacts.filter((contact) => {
-      // console.log(contact.name);
-      return contact.name.toLowerCase().includes(normalizedFilter);
-    });
-  };
-
-  handleRemoveContact = (id) =>
-    this.setState(({ contacts }) => ({
-      contacts: contacts.filter((contact) => contact.id !== id),
-    }));
-
-  componentDidMount() {
-    // console.log("componentDidMount");
-    const contacts = JSON.parse(localStorage.getItem("contacts"));
-    // console.log(contacts);
-    if (contacts) {
-      this.setState({ contacts });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // console.log("componentDidUpdate");
-    // console.log(prevProps);
-    if (this.state.contacts !== prevState.contacts) {
-      // console.log("Изменился стейт");
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
-    }
-    // console.log(prevState);
-    // console.log(this.state);
-  }
-
-  render() {
-    const { filter } = this.state;
-    const visibleContacts = this.getVisibleContacts();
-    return (
-      <div className="contaiter">
-        <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.handleAddContact} />
-        <h2>Contacts</h2>
-        <Filter value={filter} onChange={this.handleChangeFilter} />
-        <ContactList
-          contacts={visibleContacts}
-          onRemove={this.handleRemoveContact}
-        />
-      </div>
+    return contacts.filter((contact) =>
+      contact.name.toLowerCase().includes(normalizedFilter)
     );
   }
-}
 
-export default App;
+  function handleRemoveContact(id) {
+    setContacts((contacts) => contacts.filter((contact) => contact.id !== id));
+  }
+
+  return (
+    <div className="contaiter">
+      <h1>Phonebook</h1>
+      <ContactForm onSubmit={handleAddContact} />
+      <h2>Contacts</h2>
+      <Filter value={filter} onChange={handleChangeFilter} />
+      <ContactList
+        contacts={getVisibleContacts()}
+        onRemove={handleRemoveContact}
+      />
+    </div>
+  );
+}
