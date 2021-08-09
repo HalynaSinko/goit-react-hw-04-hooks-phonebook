@@ -24,7 +24,6 @@ export default function App() {
   }, [contacts]);
 
   function handleAddContact(newContact) {
-    // console.log(newContact);
     const uniqueContact = handleUniqueContact(newContact);
     if (!uniqueContact) {
       alert(`${newContact.name} is already in contacts`);
@@ -43,7 +42,6 @@ export default function App() {
       (contact) => contact.name === newContact.name
     );
     return !isExistContact;
-    // console.log(isExistContact);
   }
 
   function getVisibleContacts() {
